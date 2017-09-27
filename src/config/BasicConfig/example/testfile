@@ -1,0 +1,10 @@
+label:
+key=value
+key2=value2
+key3=value3
+
+label2:
+key=valueL \=
+key2=valueL2 \= \= ok
+key3=valueL3
+lol\=cou=SUcceSS
