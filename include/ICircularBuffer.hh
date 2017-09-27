@@ -1,10 +1,17 @@
 #ifndef ICIRCULAR_BUFFER
 #define ICIRCULAR_BUFFER
 
+#include "IConfig.hh"
+
 template <typename T>
 class ICircularBuffer
 {
 public:
+    /**
+     * Load parameter of circular buffer.
+     * @return
+     */
+    virtual bool init(IConfig const &) noexcept = 0;
     /**
      * Put element.
      */
