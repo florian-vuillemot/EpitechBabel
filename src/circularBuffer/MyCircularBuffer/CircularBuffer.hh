@@ -3,7 +3,7 @@
 
 #include <optional>
 #include <queue>
-#include "ICircularBuffer.hh"
+#include "../../../include/ICircularBuffer.hh"
 
 class IConfig;
 
