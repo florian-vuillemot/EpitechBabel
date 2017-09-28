@@ -9,6 +9,9 @@
 #include <memory>
 #include "IConfig.hh"
 
+
+#include <stdlib.h>
+
 template<std::size_t I = 0, typename... Tp>
 inline typename std::enable_if<I == sizeof...(Tp), void>::type
 for_each_tuple(std::tuple<Tp...> const &)
@@ -67,7 +70,7 @@ class SerializeParse
 {
 public:
     template<typename First, typename Second, typename ...Args>
-    std::unique_ptr<char> &&load(std::unique_ptr<char> &&bitfield, First &f, Second &s, Args &... args) const noexcept
+    std::unique_ptr<char> load(std::unique_ptr<char> &&bitfield, First &f, Second &s, Args &... args) const noexcept
     {
         auto * const refPtr = bitfield.release();
         auto const *ptr = static_cast<void const *>(refPtr);
@@ -75,7 +78,18 @@ public:
 
         for_each_tuple(tuple, f, s, args...);
 
-        return std::move(std::unique_ptr<char>(refPtr));
+        return std::unique_ptr<char>(refPtr);
+    }
+
+    template<typename First, typename Second, typename ...Args>
+    std::unique_ptr<char> serialize(std::unique_ptr<char> &&bitfield, First const f, Second const s, Args const... args) const noexcept
+    {
+        auto *const refPtr = bitfield.release();
+        auto *ptr = static_cast<char *>(refPtr);
+
+        writeOnBuffer(ptr, f, s, args...);
+
+        return std::unique_ptr<char>(refPtr);
     }
 
 private:
@@ -93,6 +107,23 @@ private:
         auto const *nextPtr = static_cast<void const *>(ptr + 1);
 
         return std::tuple_cat (std::make_tuple(a), createFromBitfield<Second, Args...>(nextPtr));
+    }
+
+    template <typename Last>
+    void writeOnBuffer(void *bitfield, Last const last) const noexcept
+    {
+        *static_cast<Last *>(bitfield) = last;
+    }
+
+    template <typename First, typename Second, typename ...Args>
+    void writeOnBuffer(void *bitfield, First const f, Second const s, Args const... args) const noexcept
+    {
+        auto *ptr = static_cast<First *>(bitfield);
+        auto *nextPtr = static_cast<void *>(ptr + 1);
+
+        *ptr = f;
+
+        writeOnBuffer(nextPtr, s, args...);
     }
 };
 
