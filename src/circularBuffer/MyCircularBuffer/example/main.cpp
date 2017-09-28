@@ -4,17 +4,21 @@
 
 #include <iostream>
 #include <string>
-#include "CircularBuffer.hh"
-
-class IConfig{
-
-};
+#include "../CircularBuffer.hh"
+#include "../../../config/BasicConfig/BasicConfig.hh"
 
 int main()
 {
-    IConfig conf;
+    BasicConfig conf;
+    if (!conf.init("testfile")){
+        std::cout << "fail init config" << std::endl;
+        return 0;
+    }
     CircularBuffer<std::string> c;
-    c.init(conf);
+    if (!c.init(conf)){
+        std::cout << "fail init" << std::endl;
+        return 0;
+    }
     for (auto i = 0; i < 20; ++i){
         std::string str = "";
         str += std::to_string(i);
