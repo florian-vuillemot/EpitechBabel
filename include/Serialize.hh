@@ -7,10 +7,10 @@
 
 #include <tuple>
 #include <memory>
+#include <type_traits>
 #include "IConfig.hh"
 
-
-#include <stdlib.h>
+#include <iostream>
 
 template<std::size_t I = 0, typename... Tp>
 inline typename std::enable_if<I == sizeof...(Tp), void>::type
@@ -26,17 +26,20 @@ for_each_tuple(std::tuple<Tp...> const & t, First &f, Args &... args)
 }
 
 
-template <typename Type>
+template <typename T>
 class Serialize
 {
+public:
     using typeSize = unsigned int;
+    using type = T;
+    using typePtr = std::unique_ptr<type>;
 
 public:
     bool init(IConfig const &) noexcept {
         return true;
     }
 
-    bool create(typeSize size, std::unique_ptr<Type> &&ptr) noexcept  {
+    bool create(typeSize size, typePtr &&ptr) noexcept  {
         this->size = size;
         this->ptr = std::move(ptr);
         return true;
@@ -44,12 +47,12 @@ public:
 
     template <typename ... Args>
     bool create(typeSize size, Args* ...ptr) noexcept  {
-        this->ptr = std::unique_ptr<Type>(ptr...);
+        this->ptr = typePtr(ptr...);
         this->size = size;
         return true;
     }
 
-    std::unique_ptr<Type> &&getData() noexcept  {
+    typePtr &&getData() noexcept  {
         return std::move(this->ptr);
     }
 
@@ -62,13 +65,21 @@ public:
     }
 
 private:
-    std::unique_ptr<Type> ptr;
+    typePtr ptr;
     typeSize size;
 };
 
 class SerializeParse
 {
 public:
+    /**
+     * Load var_arg from bitfield with type of template.
+     * @param bitfield
+     * @param f
+     * @param s
+     * @param args
+     * @return
+     */
     template<typename First, typename Second, typename ...Args>
     std::unique_ptr<char> load(std::unique_ptr<char> &&bitfield, First &f, Second &s, Args &... args) const noexcept
     {
@@ -81,6 +92,14 @@ public:
         return std::unique_ptr<char>(refPtr);
     }
 
+    /**
+     * Put var_arg in bitfield
+     * @param bitfield
+     * @param f
+     * @param s
+     * @param args
+     * @return
+     */
     template<typename First, typename Second, typename ...Args>
     std::unique_ptr<char> serialize(std::unique_ptr<char> &&bitfield, First const f, Second const s, Args const... args) const noexcept
     {
@@ -90,6 +109,52 @@ public:
         writeOnBuffer(ptr, f, s, args...);
 
         return std::unique_ptr<char>(refPtr);
+    }
+
+    /**
+     * Return subfield from a field.
+     * @param bitfield
+     * @param first
+     * @param number
+     * @return <BitField get, bitfield given>
+     */
+    template <typename T, typename TNum>
+    std::pair<std::unique_ptr<T>, std::unique_ptr<T>> getField(std::unique_ptr<T> &&bitfield, TNum const number, TNum const first = 0) const noexcept
+    {
+        static_assert(std::is_void<T>::value == false, "Can't handle move on a void*.");
+        static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
+
+        auto *const refPtr = bitfield.release();
+        auto *cpy = static_cast<T *>(refPtr) + first;
+        auto *ptrRes = new T[number];
+
+        for (decltype(auto) i = 0; i < number; ++i){
+            ptrRes[i] = cpy[i];
+        }
+
+        return std::pair(std::unique_ptr<T>(ptrRes), std::unique_ptr<T>(refPtr));
+    }
+
+    /**
+     * Copy number bit from setterField in bitfield.
+     * @param bitfield
+     * @param setterField
+     * @param number
+     * @param firstBitField
+     * @param firstSetField
+     * @return <BitField transform, setterField>
+     */
+    template <typename T, typename TNum>
+    std::pair<std::unique_ptr<T>, std::unique_ptr<T>> setField(std::unique_ptr<T> &&bitfield, std::unique_ptr<T> &&setterField, TNum const number, TNum const firstBitField = 0, TNum const firstSetField = 0) const noexcept
+    {
+        static_assert(std::is_void<T>::value == false, "Can't handle move on a void*.");
+        static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
+
+        for (decltype(auto) i = 0; i < number; ++i){
+            bitfield.get()[i + firstBitField] = setterField.get()[i + firstSetField];
+        }
+
+        return std::pair(std::move(bitfield), std::move(setterField));
     }
 
 private:
