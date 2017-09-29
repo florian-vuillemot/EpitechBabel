@@ -6,13 +6,8 @@
 #define EPITECHBABEL_IRESPONSE_HH
 
 #include <memory>
+#include "Serialize.hh"
 #include "IConfig.hh"
-
-template <typename T>
-class ISerialize
-{
-
-};
 
 namespace Response {
     /**
@@ -63,28 +58,36 @@ namespace Response {
         virtual std::string const &status() noexcept = 0;
     };
 
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+
+    /**
+     * Response object
+     */
     class IResponse {
     protected:
-        using statusType = std::unique_ptr<IStatus>;
-        using serializeType = std::unique_ptr <ISerialize<void>>;
+        using status_type = std::unique_ptr<IStatus>;
+        using serialize_type = Serialize<char>;
 
     public:
         /**
         * Hydrate object from serialize object.
         * @return
         */
-        virtual bool load(serializeType &&) noexcept = 0;
+        virtual bool load(serialize_type &&) noexcept = 0;
 
         /**
          * Serialize request and return it.
          * @return
          */
-        virtual serializeType &&serialize() const noexcept = 0;
+        virtual bool serialize(serialize_type &) const noexcept = 0;
 
         /**
          * Set status code of response
          */
-        virtual void setStatus(statusType &&) noexcept = 0;
+        virtual void setStatus(status_type const &) noexcept = 0;
 
         /**
          * Set data of response
