@@ -6,6 +6,9 @@
 template <typename T>
 class ICircularBuffer
 {
+    /**
+     * Thread safe
+     */
 public:
     /**
      * Load parameter of circular buffer.
@@ -25,7 +28,7 @@ public:
      * Return true if you can get element.
      * @return
      */
-    virtual bool canGet() const noexcept = 0;
+    virtual bool canGet() noexcept = 0;
 };
 
 #endif

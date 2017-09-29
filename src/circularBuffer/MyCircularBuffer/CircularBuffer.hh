@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 #include <queue>
+#include <mutex>
 #include "../../../include/ICircularBuffer.hh"
 
 template <typename T>
@@ -34,19 +35,24 @@ public:
     }
 
     void put(T &&e) noexcept {
-        this->container.push(std::move(e));
+        std::lock_guard<std::mutex> lock(this->mtx);
 
+        this->container.push(std::move(e));
         this->resize();
     }
 
     T &&get() noexcept {
+        std::lock_guard<std::mutex> lock(this->mtx);
+
         auto &&res = std::move(this->container.front());
 
         this->container.pop();
         return std::move(res);
     }
 
-    bool canGet() const noexcept {
+    bool canGet() noexcept {
+        std::lock_guard<std::mutex> lock(this->mtx);
+
         return !this->container.empty();
     }
 
@@ -60,6 +66,7 @@ private:
 private:
     containerType container;
     sizeType size;
+    std::mutex mtx;
 };
 
 #endif
