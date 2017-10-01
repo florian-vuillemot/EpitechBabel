@@ -10,11 +10,15 @@
 #include "IConfig.hh"
 
 namespace Response {
+    using serialize_type = Serialize::Serialize<char[]>;
+
     /**
      * Status of request
      */
     class IStatus {
     public:
+        virtual ~IStatus() {}
+
         /**
          * Success of request
          */
@@ -46,16 +50,23 @@ namespace Response {
         virtual void badRequest() noexcept = 0;
 
         /**
-         * Return status code on int
-         * @return
-         */
-        virtual int statusCode() noexcept = 0;
-
-        /**
          * Return status code on string
          * @return
          */
-        virtual std::string const &status() noexcept = 0;
+        virtual std::string const &status() const noexcept = 0;
+
+        /**
+         * Return status serialize
+         * @return
+         */
+        virtual serialize_type::type_ptr serialize() const noexcept = 0;
+
+        /**
+         * Load status from serialize data
+         * @return
+         */
+        virtual serialize_type::type_ptr load(serialize_type::type_ptr &&, serialize_type::type_size const) noexcept = 0;
+
     };
 
     ////////////////////////////////////////////////////////////////
@@ -67,11 +78,13 @@ namespace Response {
      * Response object
      */
     class IResponse {
-    protected:
+    public:
         using status_type = std::unique_ptr<IStatus>;
-        using serialize_type = Serialize<char>;
+        using data_type = std::string;
 
     public:
+        virtual ~IResponse() {}
+
         /**
         * Hydrate object from serialize object.
         * @return
@@ -82,17 +95,27 @@ namespace Response {
          * Serialize request and return it.
          * @return
          */
-        virtual bool serialize(serialize_type &) const noexcept = 0;
+        virtual serialize_type serialize() const noexcept = 0;
 
         /**
          * Set status code of response
          */
-        virtual void setStatus(status_type const &) noexcept = 0;
+        virtual void setStatus(status_type &&) noexcept = 0;
 
         /**
          * Set data of response
          */
-        virtual void setData(std::string const &) noexcept = 0;
+        virtual void setData(data_type const &) noexcept = 0;
+
+        /**
+         * Set status code of response
+         */
+        virtual status_type::element_type const &getStatus() const noexcept = 0;
+
+        /**
+         * Set data of response
+         */
+        virtual data_type const &getData() const noexcept = 0;
     };
 
 } // End namespace
