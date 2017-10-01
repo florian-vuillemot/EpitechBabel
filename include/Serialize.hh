@@ -9,37 +9,45 @@
 #include "IConfig.hh"
 
 namespace Serialize {
+    using bit_field = std::unique_ptr<char[]>;
 
     template<typename T>
     class Serialize {
     public:
-        using typeSize = unsigned int;
+        using type_size = unsigned int;
         using type = T;
-        using typePtr = std::unique_ptr<type>;
+        using type_ptr = std::unique_ptr<type>;
 
     public:
-        bool init(IConfig const &) noexcept {
-            return true;
+        Serialize &operator=(type_ptr &&ptr) noexcept
+        {
+            this->ptr = std::move(ptr);
+            return *this;
         }
 
-        bool create(typeSize size, typePtr &&ptr) noexcept {
+        bool create(type_size size, type_ptr &&ptr) noexcept {
             this->size = size;
             this->ptr = std::move(ptr);
             return true;
         }
 
-        template<typename ... Args>
-        bool create(typeSize size, Args *...ptr) noexcept {
-            this->ptr = typePtr(ptr...);
+        bool create(type_size size, type ptr) noexcept {
+            this->ptr = type_ptr(ptr);
             this->size = size;
             return true;
         }
 
-        typePtr &&getData() noexcept {
+        bool create(type_size size, type *ptr) noexcept {
+            this->ptr = type_ptr(ptr);
+            this->size = size;
+            return true;
+        }
+
+        type_ptr &&getData() noexcept {
             return std::move(this->ptr);
         }
 
-        typeSize getSize() const noexcept {
+        type_size getSize() const noexcept {
             return this->size;
         }
 
@@ -48,8 +56,8 @@ namespace Serialize {
         }
 
     private:
-        typePtr ptr;
-        typeSize size;
+        type_ptr ptr;
+        type_size size;
     };
 
 }
