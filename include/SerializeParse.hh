@@ -46,6 +46,24 @@ namespace Serialize {
         }
 
         /**
+         * Put a variable in bitfield
+         * @tparam First
+         * @param bitfield
+         * @param f
+         * @return
+         */
+        template<typename First>
+        bit_field
+        serialize(bit_field &&bitfield, First const f) const noexcept {
+            auto *const refPtr = bitfield.release();
+            auto *ptr = static_cast<char *>(refPtr);
+
+            writeOnBuffer(ptr, f);
+
+            return bit_field(refPtr);
+        }
+
+        /**
          * Put var_arg in bitfield
          * @param bitfield
          * @param f
@@ -97,13 +115,18 @@ namespace Serialize {
          * @param firstSetField
          * @return <BitField transform, setterField return not touch>
          */
-        template<typename T, typename TNum, typename Type = std::remove_pointer<T>>
+        template<typename T,
+                    typename TNum, typename TNumBitField = TNum, typename TNumSetField = TNum,
+                    typename Type = std::remove_pointer<T>
+                >
         std::pair <std::unique_ptr<T>, std::unique_ptr<T>>
         setField(std::unique_ptr <T> &&bitfield, std::unique_ptr <T> &&setterField, TNum const number,
-                 TNum const firstBitField = 0, TNum const firstSetField = 0) const noexcept
+                 TNumBitField const firstBitField = 0, TNumSetField const firstSetField = 0) const noexcept
         {
             static_assert(std::is_void<Type>::value == false, "Can't handle move on a void*.");
             static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
+            static_assert(std::is_integral<TNumBitField>::value, "Need a integral type for iterate.");
+            static_assert(std::is_integral<TNumSetField>::value, "Need a integral type for iterate.");
 
             for (TNum i = 0; i < number; ++i) {
                 bitfield.get()[i + firstBitField] = setterField.get()[i + firstSetField];
