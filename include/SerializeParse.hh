@@ -8,6 +8,7 @@
 #include <tuple>
 #include <type_traits>
 #include <memory>
+#include <netinet/in.h>
 
 namespace Serialize {
 
@@ -33,15 +34,15 @@ namespace Serialize {
          * @return
          */
         template<typename First, typename Second, typename ...Args>
-        std::unique_ptr<char>
-        load(std::unique_ptr<char> &&bitfield, First &f, Second &s, Args &... args) const noexcept {
+        bit_field
+        load(bit_field &&bitfield, First &f, Second &s, Args &... args) const noexcept {
             auto *const refPtr = bitfield.release();
             auto const *ptr = static_cast<void const *>(refPtr);
             auto const tuple = createFromBitfield<First, Second, Args...>(ptr);
 
             for_each_tuple(tuple, f, s, args...);
 
-            return std::unique_ptr<char>(refPtr);
+            return bit_field(refPtr);
         }
 
         /**
@@ -53,26 +54,26 @@ namespace Serialize {
          * @return
          */
         template<typename First, typename Second, typename ...Args>
-        std::unique_ptr<char>
-        serialize(std::unique_ptr<char> &&bitfield, First const f, Second const s, Args const... args) const noexcept {
+        bit_field
+        serialize(bit_field &&bitfield, First const f, Second const s, Args const... args) const noexcept {
             auto *const refPtr = bitfield.release();
             auto *ptr = static_cast<char *>(refPtr);
 
             writeOnBuffer(ptr, f, s, args...);
 
-            return std::unique_ptr<char>(refPtr);
+            return bit_field(refPtr);
         }
 
         /**
          * Return subfield from a field.
-         * @param bitfield
-         * @param first
+         * @param bitfield not touch
          * @param number
-         * @return <BitField get, bitfield given>
+         * @param first
+         * @return <BitField create, bitfield given (not touch)>
          */
         template<typename T, typename TNum>
-        std::pair <std::unique_ptr<T>, std::unique_ptr<T>>
-        getField(std::unique_ptr <T> &&bitfield, TNum const number, TNum const first = 0) const noexcept {
+        std::pair <std::unique_ptr<T[]>, std::unique_ptr<T[]>>
+        getField(std::unique_ptr <T[]> &&bitfield, TNum const number, TNum const first = 0) const noexcept {
             static_assert(std::is_void<T>::value == false, "Can't handle move on a void*.");
             static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
 
@@ -80,35 +81,69 @@ namespace Serialize {
             auto *cpy = static_cast<T *>(refPtr) + first;
             auto *ptrRes = new T[number];
 
-            for (decltype(auto) i = 0; i < number; ++i) {
+            for (TNum i = 0; i < number; ++i) {
                 ptrRes[i] = cpy[i];
             }
 
-            return std::pair(std::unique_ptr<T>(ptrRes), std::unique_ptr<T>(refPtr));
+            return std::pair(std::unique_ptr<T[]>(ptrRes), std::unique_ptr<T[]>(refPtr));
         }
 
         /**
          * Copy number bit from setterField in bitfield.
          * @param bitfield
-         * @param setterField
+         * @param setterField not touch
          * @param number
          * @param firstBitField
          * @param firstSetField
-         * @return <BitField transform, setterField>
+         * @return <BitField transform, setterField return not touch>
          */
-        template<typename T, typename TNum>
+        template<typename T, typename TNum, typename Type = std::remove_pointer<T>>
         std::pair <std::unique_ptr<T>, std::unique_ptr<T>>
         setField(std::unique_ptr <T> &&bitfield, std::unique_ptr <T> &&setterField, TNum const number,
-                 TNum const firstBitField = 0, TNum const firstSetField = 0) const noexcept {
-            static_assert(std::is_void<T>::value == false, "Can't handle move on a void*.");
+                 TNum const firstBitField = 0, TNum const firstSetField = 0) const noexcept
+        {
+            static_assert(std::is_void<Type>::value == false, "Can't handle move on a void*.");
             static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
 
-            for (decltype(auto) i = 0; i < number; ++i) {
+            for (TNum i = 0; i < number; ++i) {
                 bitfield.get()[i + firstBitField] = setterField.get()[i + firstSetField];
             }
 
             return std::pair(std::move(bitfield), std::move(setterField));
         }
+
+        template <typename Numeric>
+        Numeric convertFromNetwork(Numeric const nb) const noexcept
+        {
+            return ntohl(nb);
+        }
+
+        template <typename Numeric>
+        Numeric convertForNetwork(Numeric const nb) const noexcept
+        {
+            return htonl(nb);
+        }
+
+        template<typename Iterable, typename TNum,
+                size_t sizeType = sizeof(typename Iterable::value_type)>
+        bit_field toBitField(Iterable const &iterable, TNum const size) const
+        {
+            static_assert(std::is_integral<TNum>::value, "Need a integral type for iterate.");
+
+            auto const sizeAlloc = size * sizeType;
+            auto *alloc = new char[sizeAlloc];
+
+            for (size_t i = 0, cursor = 0; i < size; ++i) {
+                auto const *mem = (char const *)(&(iterable[i]));
+
+                for (size_t cursorAlloc = 0; cursorAlloc < sizeType; ++cursorAlloc, ++cursor) {
+                    alloc[cursor] = mem[cursorAlloc];
+                }
+            }
+
+            return std::move(bit_field(alloc));
+        }
+
 
     private:
         template<typename Last>
