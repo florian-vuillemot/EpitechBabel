@@ -78,7 +78,17 @@ namespace Request{
             std::string getToken(std::string const &str, char const delim, size_t cursor) const noexcept {
                 std::string res;
 
-                for (auto it = str.begin() + cursor; it < str.end() && *it != delim; ++it){
+                auto const cmp = [&](auto const &it){
+                    if (it < str.end()){
+                        if (*it != delim || it == str.begin()){
+                            return true;
+                        }
+                        return *(it - 1) == '\\';
+                    }
+                    return false;
+                };
+
+                for (auto it = str.begin() + cursor; cmp(it); ++it){
                     res.push_back(*it);
                 }
 
