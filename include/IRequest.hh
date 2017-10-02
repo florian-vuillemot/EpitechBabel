@@ -12,7 +12,7 @@ namespace Request
     {
     public:
         using header_type = std::map<std::string, std::string>;
-        using route_type = std::map<std::string, std::string>;
+        using route_type = std::string;
         using data_type = std::map<std::string, std::string>;
         using bitfield_type = Serialize::bit_field;
         using serialize_type = Serialize::Serialize<bitfield_type::element_type>;
@@ -35,6 +35,24 @@ namespace Request
          * Set the data request
          */
         virtual void setData(data_type const &) noexcept = 0;
+
+        /**
+         * Return data
+         * @return
+         */
+        virtual data_type const & getData() const noexcept = 0;
+
+        /**
+         * Return route
+         * @return
+         */
+        virtual route_type const & getRoute() const noexcept = 0 ;
+
+        /**
+         * Return header
+         * @return
+         */
+        virtual header_type const & getHeader() const noexcept = 0;
 
         /**
          * Serialize the request

@@ -54,6 +54,20 @@ namespace Request
         serializer = this->loadField(std::move(serializer), this->data, this->placeData(), sizeData);
     }
 
+
+    IRequest::data_type const &Request::getData() const noexcept
+    {
+        return this->data->getData();
+    }
+    IRequest::route_type const &Request::getRoute() const noexcept
+    {
+        return this->route->getData();
+    }
+    IRequest::header_type const &Request::getHeader() const noexcept
+    {
+        return this->header->getData();
+    }
+
     ///////////////////////////////////////////
     ///////////////////////////////////////////
     ///////////////////////////////////////////
