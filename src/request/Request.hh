@@ -6,10 +6,6 @@
 #include "../../include/IRequest.hh"
 #include "ContainData.hh"
 
-
-#include <iostream>
-
-
 namespace Request{
     class Request : public IRequest
     {
