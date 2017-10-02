@@ -25,9 +25,9 @@ namespace Request
         auto const requestSize = this->getRequestSize();
         auto bitfield = bitfield_type(new bitfield_type::element_type[requestSize]);
 
-        auto header = parseTool.toBitField(this->header->str, this->headerSize());
-        auto route = parseTool.toBitField(this->route->str, this->routeSize());
-        auto data = parseTool.toBitField(this->data->str, this->dataSize());
+        auto header = parseTool.toBitField(this->header->getStr(), this->headerSize());
+        auto route = parseTool.toBitField(this->route->getStr(), this->routeSize());
+        auto data = parseTool.toBitField(this->data->getStr(), this->dataSize());
 
         bitfield = parseTool.serialize(std::move(bitfield),
                                        parseTool.convertForNetwork(this->headerSize()),
@@ -111,13 +111,13 @@ namespace Request
     }
 
     Request::type_response_info Request::headerSize() const noexcept{
-        return this->header->str.size();
+        return this->header->getStr().size();
     }
     Request::type_response_info Request::routeSize() const noexcept{
-        return this->route->str.size();
+        return this->route->getStr().size();
     }
     Request::type_response_info Request::dataSize() const noexcept{
-        return this->data->str.size();
+        return this->data->getStr().size();
     }
 
     Request::type_response_info Request::placeRoute() const noexcept{

@@ -12,17 +12,18 @@ namespace Request {
     static constexpr char delim_field_data = ',';
     static constexpr char delim_key_value_field = ':';
 
+    
     template<typename T>
-    struct ContainData {
-        T const data;
-        std::string const str;
-
+    class ContainData {
+    public:
         ContainData(T const &d) : data(d), str(this->toString(d)) {}
-
         ContainData(std::string const &dStr) : data(this->toMap(dStr)), str(dStr) {}
-
         ~ContainData() = default;
 
+        T const &getData() const noexcept {return this->data;}
+        std::string const &getStr() const noexcept {return this->str;}
+
+    private:
         T toMap(std::string const &dStr) noexcept {
             T res;
             auto tokens = this->getTokens(dStr, Request::delim_field_data);
@@ -105,19 +106,23 @@ namespace Request {
             return std::move(res);
         }
 
-        T const &getData() const noexcept {return this->data;}
+    private:
+        T const data;
+        std::string const str;
+
     };
 
     template<>
-    struct ContainData<std::string> {
-        std::string const str;
-
+    class ContainData<std::string> {
+    public:
         ContainData(std::string const &dStr) : str(dStr) {}
         ~ContainData() {}
 
         std::string const &getData() const noexcept {return this->str;}
+        std::string const &getStr() const noexcept {return this->str;}
+
+    private:
+        std::string const str;
     };
-
-
 }
 #endif //EPITECHBABEL_CONTAINDATA_HH
