@@ -4,13 +4,10 @@
 #include <vector>
 
 namespace Manager {
-
-    template <typename T, typename ContainerType>
+    template <typename T>
     class IManager {
     public:
         using value_type = T;
-        using container_type = ContainerType;
-        using const_iterator = typename container_type::const_iterator;
 
         /**
          * Push element if not exist method
@@ -34,17 +31,19 @@ namespace Manager {
         virtual bool remove(const value_type &val) noexcept = 0;
 
         /**
-         * Return a vector of elements.
-         * @return
-         */
-        virtual container_type   const &get() const noexcept = 0;
-
-        /**
-         * Return the iterator of element if find.
+         * Return the element or throw
          * @param val
          * @return
+         * @throw
          */
-        virtual const_iterator get(const value_type &val) const noexcept = 0;
+        virtual value_type &get(const value_type &val) const = 0;
+
+        /**
+         * Return element at place.
+         * @param place
+         * @return
+         */
+        virtual value_type &at(const int place) const = 0;
     };
 }
 
