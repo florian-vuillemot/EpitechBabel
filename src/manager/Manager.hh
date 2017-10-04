@@ -17,8 +17,6 @@
 #include <algorithm>
 #include "../../include/IManager.hh"
 
-
-#include <iostream>
 namespace Manager {
     template<typename T>
     class Manager: public IManager<T> {

@@ -20,6 +20,7 @@ namespace User {
         using email_type = std::string;
         using name_type = std::string;
         using password_type = std::string;
+        using token_type = std::string;
 
         virtual ~IUser() {};
 
@@ -76,16 +77,28 @@ namespace User {
          * @throw if is not same.
          */
         virtual bool isPassword(password_type const &) const = 0;
+        /**
+         * Set a token to user
+         */
+        virtual void setToken(token_type const &) noexcept = 0;
+        /**
+         * Compare token with it's.
+         * @return
+         */
+        virtual bool isToken(token_type const &) const noexcept = 0;
+        /**
+         * Return the token.
+         * @return
+         */
+        virtual token_type const &getToken() const noexcept = 0;
 
 
-        bool operator==(const IUser& user) const
-        {
-            return this->getID() == user.getID();
-        }
-        bool operator!=(const IUser& user) const
-        {
-            return this->getID() != user.getID();
-        }
+        bool operator==(const IUser& user) const {return this->getID() == user.getID();}
+        bool operator!=(const IUser& user) const {return this->getID() != user.getID();}
+        bool operator>(const IUser& user) const  {return this->getID() > user.getID();}
+        bool operator<(const IUser& user) const  {return this->getID() < user.getID();}
+        bool operator>=(const IUser& user) const {return this->getID() >= user.getID();}
+        bool operator<=(const IUser& user) const {return this->getID() <= user.getID();}
     };
 }
 

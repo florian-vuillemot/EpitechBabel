@@ -26,6 +26,9 @@ namespace User {
         manager_type const &getContacts() const noexcept override ;
         void setPassword(password_type const &) noexcept override ;
         bool isPassword(password_type const &) const override ;
+        void setToken(token_type const &) noexcept override ;
+        bool isToken(token_type const &) const noexcept override ;
+        token_type const &getToken() const noexcept override ;
 
     private:
         id_type id;
@@ -33,6 +36,7 @@ namespace User {
         name_type name;
         email_type email;
         password_type password;
+        token_type token;
     };
 }
 

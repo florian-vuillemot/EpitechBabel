@@ -63,4 +63,15 @@ namespace User {
         return this->password == password;
     }
 
+    void User::setToken(token_type const &token) noexcept {
+        this->token = token;
+    }
+
+    bool User::isToken(token_type const &token) const noexcept {
+        return this->token == token;
+    }
+
+    IUser::token_type const &User::getToken() const noexcept {
+        return this->token;
+    }
 }
