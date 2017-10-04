@@ -120,12 +120,44 @@ namespace ManagerUser {
             return 1;
         }
 
-        auto const maxUser = std::max_element(this->users.begin(), this->users.end(),
-                                [](std::shared_ptr <User::IUser> const &u1,
-                                   std::shared_ptr <User::IUser> const &u2) {
-                                    return *u1 < *u2;
-                                });
+        auto const maxUser = std::max_element(this->users.begin(), this->users.end());
         auto const id = maxUser->get()->getID();
         return id + 1;
     }
+
+    std::optional<IManagerUser::user_type> ManagerUser::getConnect(email_type const &email, token_type const &token) const noexcept {
+        if (false == token.empty()) {
+            return this->find(
+                    [email, token](auto const &user) {
+                        return user.getEmail() == email and user.getToken() == token;
+                    });
+        }
+
+        return {};
+    }
+
+    void ManagerUser::disconnect(id_type const id) const noexcept {
+        auto userPtr = this->get(id);
+
+        if (userPtr){
+            auto user = *userPtr;
+
+            user->setToken("");
+        }
+    }
+
+    std::optional<IManagerUser::ip_type> ManagerUser::ifConnect(id_type const id) const noexcept {
+        auto userPtr = this->get(id);
+
+        if (userPtr){
+            auto user = *userPtr;
+
+            if (false == user->getToken().empty()){
+                return user->getIp();
+            }
+        }
+
+        return {};
+    }
+
 }

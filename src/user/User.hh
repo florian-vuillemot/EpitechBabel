@@ -29,6 +29,8 @@ namespace User {
         void setToken(token_type const &) noexcept override ;
         bool isToken(token_type const &) const noexcept override ;
         token_type const &getToken() const noexcept override ;
+        IUser::ip_type const &getIp() const noexcept override ;
+        void setIp(ip_type const &) noexcept override ;
 
     private:
         id_type id;
@@ -37,6 +39,7 @@ namespace User {
         email_type email;
         password_type password;
         token_type token;
+        ip_type ip;
     };
 }
 

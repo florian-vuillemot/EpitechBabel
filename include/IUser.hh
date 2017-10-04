@@ -21,6 +21,7 @@ namespace User {
         using name_type = std::string;
         using password_type = std::string;
         using token_type = std::string;
+        using ip_type = std::string;
 
         virtual ~IUser() {};
 
@@ -91,6 +92,16 @@ namespace User {
          * @return
          */
         virtual token_type const &getToken() const noexcept = 0;
+        /**
+         * Get the user ip
+         * @return
+         */
+        virtual ip_type const &getIp() const noexcept = 0;
+        /**
+         * Set the user ip
+         * @return
+         */
+        virtual void setIp(ip_type const &) noexcept = 0;
 
 
         bool operator==(const IUser& user) const {return this->getID() == user.getID();}

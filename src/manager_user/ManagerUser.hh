@@ -18,6 +18,9 @@ namespace ManagerUser {
         std::optional<user_type> get(email_type const &) const noexcept override;
         void push(user_type const &user) noexcept override ;
         void push(user_type &&user) noexcept override ;
+        std::optional<user_type> getConnect(email_type const &, token_type const &) const noexcept override ;
+        void disconnect(id_type const) const noexcept override ;
+        std::optional<ip_type> ifConnect(id_type const) const noexcept override ;
 
     private:
         template <typename FCT>

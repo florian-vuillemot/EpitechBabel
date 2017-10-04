@@ -7,6 +7,8 @@
 namespace User {
     User::User(){
         this->id = 0;
+        this->ip = "";
+        this->token = "";
     }
     User::~User(){
     }
@@ -73,5 +75,13 @@ namespace User {
 
     IUser::token_type const &User::getToken() const noexcept {
         return this->token;
+    }
+
+    IUser::ip_type const &User::getIp() const noexcept {
+        return this->ip;
+    }
+
+    void User::setIp(ip_type const &ip) noexcept {
+        this->ip = ip;
     }
 }
