@@ -4,11 +4,7 @@
 class IConfig
 {
 public:
-    IConfig() = default;
-    virtual ~IConfig() = default;
-    IConfig(IConfig const &) = default;
-    IConfig &operator=(IConfig const &) = default;
-    IConfig &operator=(IConfig &&) = delete;
+    virtual ~IConfig() {};
 
     /**
      * Load IConfig file.
